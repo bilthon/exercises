@@ -1,0 +1,11 @@
+To use the video capture first create a named pipe:
+
+> mkfifo npipe
+
+In a separate shell but in the same directory start the video processing script
+
+> python videocapture.py
+
+And then run a ffmpeg command grabbing the video from anywhere.
+
+> ffmpeg -probesize 4k -re -y -i <source> -s 320x240 -an -vcodec mjpeg -qscale 2 -f avi npipe
