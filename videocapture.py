@@ -4,13 +4,15 @@ import cv2
 import cv2.cv as cv
 import os
 import datetime
+import glob
+import re
 
 # Read cascade files
-cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
+cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt2.xml")
 
 def movement(ref, img):
     diff = cv2.absdiff(ref, img)
-    retval_diff, dst = cv2.threshold(diff, 50, 255, cv2.THRESH_BINARY)
+    retval_diff, dst = cv2.threshold(diff, 50, 1, cv2.THRESH_BINARY)
     return dst
 
 
@@ -33,17 +35,23 @@ def draw_rects(img, rects, color):
     for x1, y1, x2, y2 in rects:
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
 
-
-log_file = 'faces/capture_log.txt'
+data_dir = 'faces/'
+log_file = data_dir + 'capture_log.txt'
+img_ext = 'png'
 
 if __name__ == '__main__':
+    imgs = sorted(glob.glob(data_dir + '*.' + img_ext))
+    try:
+        cnt = int(re.search(re.escape(data_dir) + r'(\d+)', imgs[-1]).group(1)) + 1
+    except Exception:
+        cnt = 1
+
     rpath = 'npipe'
     capture = cv2.VideoCapture(rpath)
 
     ret, img = capture.read()
     ref_gray = to_gray(img)
 
-    cnt = 1
     while True:
         ret, img = capture.read()
 
@@ -59,7 +67,7 @@ if __name__ == '__main__':
                     print(cnt, '-', datetime.datetime.now(), file=f)
 
                 draw_rects(img, rects, (0, 255, 0))
-                cv.SaveImage('faces/%05d.png' % cnt, cv.fromarray(img))
+                cv.SaveImage(data_dir + '%06d.' % cnt + img_ext, cv.fromarray(img))
                 cnt += 1
             else:
                 print('no')
