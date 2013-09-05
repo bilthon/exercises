@@ -2,6 +2,7 @@
 from __future__ import print_function
 import cv2
 import cv2.cv as cv
+import numpy as np
 import os
 import datetime
 import glob
@@ -35,9 +36,10 @@ def draw_rects(img, rects, color):
     for x1, y1, x2, y2 in rects:
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
 
+font = cv.InitFont(cv.CV_FONT_HERSHEY_SIMPLEX, .5, .5, lineType=cv.CV_AA)
 data_dir = 'faces/'
 log_file = data_dir + 'capture_log.txt'
-img_ext = 'png'
+img_ext = 'jpg'
 
 if __name__ == '__main__':
     imgs = sorted(glob.glob(data_dir + '*.' + img_ext))
@@ -63,11 +65,14 @@ if __name__ == '__main__':
 
             if len(rects) > 0:
                 print('rosto')
+                timestamp = str(datetime.datetime.now())
                 with open(log_file, 'a') as f:
-                    print(cnt, '-', datetime.datetime.now(), file=f)
+                    print(cnt, '-', timestamp, file=f)
 
                 draw_rects(img, rects, (0, 255, 0))
-                cv.SaveImage(data_dir + '%06d.' % cnt + img_ext, cv.fromarray(img))
+                final_img = cv.fromarray(img)
+                cv.PutText(final_img, timestamp.split('.')[0], (10, 20), font, (0, 0, 255))
+                cv.SaveImage(data_dir + '%06d.' % cnt + img_ext, final_img)
                 cnt += 1
             else:
                 print('no')
@@ -78,5 +83,6 @@ if __name__ == '__main__':
         cv2.imshow('Video', img)
         if 0xFF & cv2.waitKey(1) == 27:
             break
+
 cv2.destroyAllWindows()
 
