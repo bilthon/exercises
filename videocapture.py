@@ -48,8 +48,7 @@ if __name__ == '__main__':
     except Exception:
         cnt = 1
 
-    rpath = 'npipe'
-    capture = cv2.VideoCapture(rpath)
+    capture = cv2.VideoCapture('/dev/stdin')
 
     ret, img = capture.read()
     ref_gray = to_gray(img)
