@@ -37,11 +37,26 @@ def draw_rects(img, rects, color):
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
 
 font = cv.InitFont(cv.CV_FONT_HERSHEY_SIMPLEX, .5, .5, lineType=cv.CV_AA)
-data_dir = 'faces/'
-log_file = data_dir + 'capture_log.txt'
+base_data_dir = 'faces/'
+log_file = 'capture_log.txt'
 img_ext = 'jpg'
+join = os.path.join
+
+def dirname(base_dir=base_data_dir):
+    """ Generate dir name in directory for the day (inside base_dir)
+        Dir name format: AAAA_MM_DD
+        If the dir do not exists, it will be created.
+    """
+    now = datetime.datetime.now()
+    dir = '%02d_%02d_%02d' % (now.year, now.month, now.day)
+    dir = join(base_dir, dir, '')
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    return dir
+    
 
 if __name__ == '__main__':
+    data_dir = dirname()
     imgs = sorted(glob.glob(data_dir + '*.' + img_ext))
     try:
         cnt = int(re.search(re.escape(data_dir) + r'(\d+)', imgs[-1]).group(1)) + 1
@@ -49,6 +64,7 @@ if __name__ == '__main__':
         cnt = 1
 
     capture = cv2.VideoCapture('/dev/stdin')
+    print('Capture started')
 
     ret, img = capture.read()
     ref_gray = to_gray(img)
@@ -64,14 +80,20 @@ if __name__ == '__main__':
 
             if len(rects) > 0:
                 print('rosto')
+
+                data_dir_now = dirname()
+                if data_dir_now != data_dir:
+                    cnt = 1
+                    data_dir = data_dir_now
+
                 timestamp = str(datetime.datetime.now())
-                with open(log_file, 'a') as f:
+                with open(join(data_dir, log_file), 'a') as f:
                     print(cnt, '-', timestamp, file=f)
 
                 draw_rects(img, rects, (0, 255, 0))
                 final_img = cv.fromarray(img)
                 cv.PutText(final_img, timestamp.split('.')[0], (10, 20), font, (0, 0, 255))
-                cv.SaveImage(data_dir + '%06d.' % cnt + img_ext, final_img)
+                cv.SaveImage(join(data_dir, '%06d.' % cnt + img_ext), final_img)
                 cnt += 1
             else:
                 print('no')
@@ -80,6 +102,8 @@ if __name__ == '__main__':
 
         ref_gray = gray
         cv2.imshow('Video', img)
+        #cv2.imshow('Video', np.asarray(final_img[:,:]))
+
         if 0xFF & cv2.waitKey(1) == 27:
             break
 

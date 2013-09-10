@@ -1,3 +1,4 @@
+[0-9_]+
 *.png
 *.jpg
 capture_log.txt
